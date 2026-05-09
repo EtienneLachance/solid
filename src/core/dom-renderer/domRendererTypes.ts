@@ -29,6 +29,7 @@ export interface IRendererStage {
   };
   loadFont: lng.Stage['loadFont'];
   reprocessUpdates?: (callback?: () => void) => void;
+  requestRender: () => void;
   cleanup(full: boolean): void;
 }
 
