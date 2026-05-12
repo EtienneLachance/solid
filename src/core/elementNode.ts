@@ -317,6 +317,9 @@ export interface ElementNode extends RendererNode, FocusNode {
   _lastAnyKeyPressTime?: number;
   _type: 'element' | 'textNode';
   _undoStyles?: string[];
+  _display?: 'flex' | 'block';
+  _onLayout?: (this: ElementNode, target: ElementNode) => void;
+  _requiresLayout: boolean;
   autosize?: boolean;
   /**
    * Optional component name for inspector / dev tooling — emitted by the
@@ -504,13 +507,6 @@ export interface ElementNode extends RendererNode, FocusNode {
    * @see https://lightning-tv.github.io/solid/#/flow/layout?id=flex
    */
   direction?: 'ltr' | 'rtl';
-  /**
-   * Specifies the display behavior of an element. 'flex' enables flexbox layout.
-   *
-   * @default 'block'
-   * @see https://lightning-tv.github.io/solid/#/flow/layout?id=flex
-   */
-  display?: 'flex' | 'block';
   /**
    * Defines how the flex container's size is determined. 'contain' allows it to grow with its content, 'fixed' keeps it at its specified size.
    *
@@ -724,13 +720,6 @@ export interface ElementNode extends RendererNode, FocusNode {
   onEvent?: OnEvent;
 
   /**
-   * Callback run after flex layout is calculated on flex elements
-   *
-   * @see https://lightning-tv.github.io/solid/#/flow/layout
-   */
-  onLayout?: (this: ElementNode, target: ElementNode) => void;
-
-  /**
    * The individual padding on each side of an element, acting as an override to the `padding` array property.
    * `paddingTop`, `paddingRight`, `paddingBottom`, `paddingLeft`.
    * Only in the new flex engine.
@@ -790,6 +779,9 @@ export class ElementNode {
     this._theme = undefined;
     this._lastAnyKeyPressTime = undefined;
     this._undoStyles = undefined;
+    this._display = undefined;
+    this._onLayout = undefined;
+    this._requiresLayout = false;
   }
 
   get effects(): StyleEffects | undefined {
@@ -960,8 +952,8 @@ export class ElementNode {
 
   _sendToLightningAnimatable(name: string, value: number) {
     if (
-      this.transition &&
       this.rendered &&
+      this.transition &&
       Config.animationsEnabled &&
       (this.transition === true ||
         this.transition[name] ||
@@ -1094,8 +1086,11 @@ export class ElementNode {
   }
 
   getText(this: ElementText) {
+    const len = this.children.length;
+    if (len === 1) return this.children[0]!.text;
+    if (len === 0) return '';
     let result = '';
-    for (let i = 0; i < this.children.length; i++) {
+    for (let i = 0; i < len; i++) {
       result += this.children[i]!.text;
     }
     return result;
@@ -1261,8 +1256,41 @@ export class ElementNode {
     return this._autofocus;
   }
 
+  /**
+   * Specifies the display behavior of an element. 'flex' enables flexbox layout.
+   *
+   * @default 'block'
+   * @see https://lightning-tv.github.io/solid/#/flow/layout?id=flex
+   */
+  get display(): 'flex' | 'block' | undefined {
+    return this._display;
+  }
+
+  set display(v: 'flex' | 'block' | undefined) {
+    this._display = v;
+    this._requiresLayout = v === 'flex' || this._onLayout !== undefined;
+  }
+
+  /**
+   * Callback run after flex layout is calculated on flex elements.
+   *
+   * @see https://lightning-tv.github.io/solid/#/flow/layout
+   */
+  get onLayout():
+    | ((this: ElementNode, target: ElementNode) => void)
+    | undefined {
+    return this._onLayout;
+  }
+
+  set onLayout(
+    fn: ((this: ElementNode, target: ElementNode) => void) | undefined,
+  ) {
+    this._onLayout = fn;
+    this._requiresLayout = this._display === 'flex' || fn !== undefined;
+  }
+
   requiresLayout() {
-    return this.display === 'flex' || this.onLayout;
+    return this._requiresLayout;
   }
 
   set updateLayoutOn(v: any) {
