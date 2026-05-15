@@ -212,7 +212,7 @@ export const KeepAliveRoute = <S extends string>(
   };
 
   const onRemove = chainFunctions(props.onRemove, (elm: ElementNode) => {
-    savedFocusedElement = activeElement() as ElementNode;
+    savedFocusedElement = activeElement();
     elm.alpha = 0;
   });
 
@@ -238,7 +238,9 @@ export const KeepAliveRoute = <S extends string>(
   const preload = props.preload
     ? (preloadProps: RoutePreloadFuncArgs) => {
         let existing = getExisting();
-        const existingChild = existing.children as unknown as ElementNode | undefined;
+        const existingChild = existing.children as unknown as
+          | ElementNode
+          | undefined;
 
         if (
           existingChild &&
@@ -254,11 +256,17 @@ export const KeepAliveRoute = <S extends string>(
           return s.createRoot((dispose) => {
             existing.owner = s.getOwner();
             existing.dispose = dispose;
-            return props.preload!({ ...preloadProps, isAlive: existing.isAlive! });
+            return props.preload!({
+              ...preloadProps,
+              isAlive: existing.isAlive!,
+            });
           });
         } else if (existing.children) {
           (existing.children as unknown as ElementNode).setFocus();
-          return props.preload!({ ...preloadProps, isAlive: existing.isAlive! });
+          return props.preload!({
+            ...preloadProps,
+            isAlive: existing.isAlive!,
+          });
         } else {
           return props.preload!({
             ...preloadProps,
@@ -277,7 +285,11 @@ export const KeepAliveRoute = <S extends string>(
     // causing the sibling's component to be created from the preserved
     // KeepAlive subtree. Inherit via prototype so the getter is preserved.
     const innerProps = Object.create(childProps, {
-      isAlive: { value: existing.isAlive!, enumerable: true, configurable: true },
+      isAlive: {
+        value: existing.isAlive!,
+        enumerable: true,
+        configurable: true,
+      },
     }) as RouteProps<S> & { isAlive: s.Accessor<boolean> };
     return (
       <KeepAliveRouteInternal
@@ -292,11 +304,7 @@ export const KeepAliveRoute = <S extends string>(
   };
 
   const routeElement = (
-    <Route
-      {...props}
-      preload={preload}
-      component={componentWrapper}
-    />
+    <Route {...props} preload={preload} component={componentWrapper} />
   );
 
   keepAliveRouteCache.set(key, routeElement);

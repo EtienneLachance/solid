@@ -317,7 +317,6 @@ function createVirtual<T>(
         }
         break;
       }
-
       case 'none':
       default:
         start = 0;
@@ -405,13 +404,7 @@ function createVirtual<T>(
     originalPosition = originalPosition ?? elm[axis];
 
     if (props.onSelectedChanged) {
-      props.onSelectedChanged.call(
-        this,
-        idx,
-        this,
-        active,
-        lastIdx,
-      );
+      props.onSelectedChanged.call(this, idx, this, active, lastIdx);
     }
 
     if (noChange) return;

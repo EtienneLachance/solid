@@ -55,7 +55,9 @@ export default {
     parent.insertChild(node, anchor);
 
     if (node instanceof ElementNode) {
-      node.parent!.rendered && node.render(true);
+      if (node.parent!.rendered) {
+        node.render(true);
+      }
       if (prevParent !== undefined) {
         pushDeleteQueue(node, 1);
       }
@@ -83,13 +85,13 @@ export default {
     return node.parent;
   },
   getFirstChild(node: ElementNode): SolidNode | undefined {
-    return node.children[0] as SolidNode;
+    return node.children[0];
   },
   getNextSibling(node: SolidNode): SolidNode | undefined {
-    const children = node.parent!.children || [];
-    const index = children.indexOf(node as any) + 1;
+    const children = (node.parent!.children || []) as SolidNode[];
+    const index = children.indexOf(node) + 1;
     if (index < children.length) {
-      return children[index] as SolidNode;
+      return children[index];
     }
     return undefined;
   },

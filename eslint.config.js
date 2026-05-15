@@ -1,5 +1,7 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier';
+import globals from 'globals';
 
 // Temporary relaxed rules while we tighten up our TypeScript code
 // TODO: Remove these rules once we eliminate all of the unnecessary `any` types in the code
@@ -24,13 +26,6 @@ const relaxedTypedRules = {
   '@typescript-eslint/ban-ts-comment': 'warn',
   '@typescript-eslint/restrict-template-expressions': 'warn',
   '@typescript-eslint/prefer-promise-reject-errors': 'warn',
-  '@typescript-eslint/no-unused-vars': [
-    'warn',
-    {
-      argsIgnorePattern: '^_',
-      varsIgnorePattern: '^_',
-    },
-  ],
 };
 
 export default tseslint.config(
@@ -38,30 +33,30 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**'],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ['src/**/*.{ts,tsx,js}'],
+    files: ['src/**/*.{ts,tsx}'],
+    extends: [...tseslint.configs.recommended], // recommendedTypeChecked
     languageOptions: {
       parserOptions: {
         project: true,
         tsconfigRootDir: import.meta.dirname,
       },
+      globals: {
+        ...globals.browser,
+        ...globals.es2022,
+      },
     },
-    rules: relaxedTypedRules,
-  },
-  {
-    files: ['**/*.{ts,tsx,js}'],
-    ignores: ['src/**/*.{ts,tsx,js}'],
-    extends: [tseslint.configs.disableTypeChecked],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      ...relaxedTypedRules,
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
+          caughtErrorsIgnorePattern: '^(e|er|err|error)$',
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
         },
       ],
     },
   },
+  prettierConfig,
 );

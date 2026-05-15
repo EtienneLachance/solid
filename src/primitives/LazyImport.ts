@@ -20,12 +20,14 @@ export function lazy<T extends Component<any>>(
       const [s, set] = createSignal<T>();
       sharedConfig.count || (sharedConfig.count = 0);
       sharedConfig.count++;
-      (p || (p = fn())).then((mod) => {
-        !sharedConfig.done && (sharedConfig.context = ctx);
-        sharedConfig.count!--;
-        set(() => mod.default);
-        sharedConfig.context = undefined;
-      });
+      (p || (p = fn()))
+        .then((mod) => {
+          !sharedConfig.done && (sharedConfig.context = ctx);
+          sharedConfig.count!--;
+          set(() => mod.default);
+          sharedConfig.context = undefined;
+        })
+        .catch(() => {});
       comp = s;
     } else if (!comp) {
       const [s] = createResource<T>(() =>
