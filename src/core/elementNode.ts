@@ -147,7 +147,7 @@ function buildFontTemplate() {
         _fontFamilyIdx = tpl.length;
         _fontFamilyWithWeight = `${fs.fontFamily}${fs.fontWeight || ''}`;
       }
-      tpl.push([key, (fs as any)[key]]);
+      tpl.push([key, fs[key]]);
     }
   }
   _fontTemplate = tpl;
@@ -155,8 +155,8 @@ function buildFontTemplate() {
 
 const parseAndAssignShaderProps = (
   prefix: string,
-  obj: Record<string, any>,
-  props: Record<string, any> = {},
+  obj: Record<string, unknown>,
+  props: Record<string, unknown> = {},
 ) => {
   if (!obj) return;
 
@@ -701,7 +701,7 @@ export interface ElementNode extends RendererNode, FocusNode {
    *
    * @see https://lightning-tv.github.io/solid/#/flow/ondestroy
    */
-  onDestroy?: (this: ElementNode, el: ElementNode) => Promise<any> | void;
+  onDestroy?: (this: ElementNode, el: ElementNode) => Promise<void> | void;
   /**
    * Optional handlers for when the element is rendered—after creation and when switching parents.
    *
@@ -889,7 +889,7 @@ export class ElementNode {
       (Config.fontWeightAlias &&
         (Config.fontWeightAlias[v as string] as number | string)) ??
       v;
-    (this.lng as any).fontFamily =
+    (this.lng as ElementNode).fontFamily =
       `${this.fontFamily || Config.fontSettings?.fontFamily}${weight}`;
   }
 
@@ -899,7 +899,7 @@ export class ElementNode {
 
   set fontFamily(v) {
     this._fontFamily = v;
-    (this.lng as any).fontFamily = v;
+    (this.lng as ElementNode).fontFamily = v;
   }
 
   get fontFamily() {
@@ -997,7 +997,7 @@ export class ElementNode {
         return animationController.start();
       }
 
-      const result = (this.lng as any).animateProp(
+      const result = (this.lng as INode).animateProp(
         name,
         value,
         animationSettings || this.animationSettings || {},
@@ -1031,8 +1031,9 @@ export class ElementNode {
     props: Partial<INodeAnimateProps<CoreShaderNode>>,
     animationSettings?: AnimationSettings,
   ): IAnimationController {
-    isDev &&
+    if (isDev) {
       assertTruthy(this.rendered, 'Node must be rendered before animating');
+    }
     return (this.lng as IRendererNode).animate(
       props,
       animationSettings || this.animationSettings || {},
@@ -1142,7 +1143,7 @@ export class ElementNode {
       // If onDestroy returns a promise, wait for it to resolve before destroying
       // Useful with animations waitUntilStopped method which returns promise
       if (destroyPromise instanceof Promise) {
-        destroyPromise.then(() => this._destroy());
+        void destroyPromise.then(() => this._destroy());
       } else {
         this._destroy();
       }
@@ -1281,7 +1282,7 @@ export class ElementNode {
    * @param val - A value to determine if the element should autofocus.
    *              A truthy value enables autofocus, otherwise disables it.
    */
-  set autofocus(val: any) {
+  set autofocus(val: boolean | undefined) {
     this._autofocus = val;
     // Defer setFocus so children render first (forwardFocus needs them).
     // The post-mutation focus phase calls setFocus on this element.
@@ -1332,7 +1333,7 @@ export class ElementNode {
     return this._requiresLayout;
   }
 
-  set updateLayoutOn(v: any) {
+  set updateLayoutOn(_v: unknown) {
     this.updateLayout();
   }
 
@@ -1342,7 +1343,7 @@ export class ElementNode {
 
   updateLayout() {
     if (this.hasChildren) {
-      isDev && log('Layout: ', this);
+      if (isDev) log('Layout: ', this);
 
       if (this.display === 'flex' && this.flexGrow && this.width === 0) {
         return;
@@ -1372,10 +1373,10 @@ export class ElementNode {
   }
 
   _stateChanged() {
-    isDev && log('State Changed: ', this, this.states);
+    if (isDev) log('State Changed: ', this, this.states);
 
     if (isDev) {
-      const div = (this.lng as any)?.div as HTMLElement | undefined;
+      const div = (this.lng as IRendererNode)?.div;
       if (div) {
         if (this.states.length > 0) {
           div.dataset.states = this.states.join(' ');
@@ -1589,7 +1590,7 @@ export class ElementNode {
         props.shader = Config.convertToShader(node, props.shader);
       }
 
-      isDev && log('Rendering: ', this, props);
+      if (isDev) log('Rendering: ', this, props);
 
       node.lng = renderer.createTextNode(
         props as Partial<ITextNodeProps> & Partial<IRendererTextNodeProps>,
@@ -1629,7 +1630,7 @@ export class ElementNode {
         props.shader = Config.convertToShader(node, props.shader);
       }
 
-      isDev && log('Rendering: ', this, props);
+      if (isDev) log('Rendering: ', this, props);
 
       node.lng = renderer.createNode(
         props as Partial<INodeProps<any>> & Partial<IRendererNodeProps>,
@@ -1640,7 +1641,7 @@ export class ElementNode {
 
         for (const child of node.children) {
           if (isElementNode(child) && isINode(child.lng)) {
-            child.lng.parent = node.lng as any;
+            child.lng.parent = node.lng as INode;
           }
         }
       }
@@ -1668,7 +1669,7 @@ export class ElementNode {
     }
 
     // L3 Inspector adds div to the lng object
-    const div: HTMLElement | undefined = (node.lng as any)?.div;
+    const div: HTMLElement | undefined = (node.lng as IRendererNode)?.div;
     if (isDev && div) {
       div.element = node;
       if (node._states && node._states.length > 0) {
@@ -1681,7 +1682,7 @@ export class ElementNode {
       const numChildren = node.children.length;
       for (let i = 0; i < numChildren; i++) {
         const c = node.children[i];
-        isDev && assertTruthy(c, 'Child is undefined');
+        if (isDev) assertTruthy(c, 'Child is undefined');
         // Text elements sneak in from Solid creating tracked nodes
         if (isElementNode(c)) {
           c.render();
@@ -1694,7 +1695,7 @@ export class ElementNode {
       schedulePostMutation();
     }
 
-    node._autofocus && node.setFocus();
+    if (node._autofocus) node.setFocus();
   }
 }
 
