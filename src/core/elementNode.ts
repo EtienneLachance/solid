@@ -78,9 +78,20 @@ let postMutationQueued = false;
 let nextActiveElement: ElementNode | null = null;
 let deferredFocusElement: ElementNode | null = null;
 const layoutQueue = new Set<ElementNode>();
-export const elementDeleteQueue: ElementNode[] = [];
+const elementDeleteQueue: ElementNode[] = [];
 
-export function schedulePostMutation() {
+export function enqueueDelete(node: ElementNode, n: number): void {
+  if (node._queueDelete === undefined) {
+    node._queueDelete = n;
+    if (elementDeleteQueue.push(node) === 1) {
+      schedulePostMutation();
+    }
+  } else {
+    node._queueDelete += n;
+  }
+}
+
+function schedulePostMutation() {
   if (postMutationQueued) return;
   postMutationQueued = true;
   if ('reprocessUpdates' in renderer.stage && renderer.stage.reprocessUpdates) {
@@ -299,7 +310,6 @@ export interface ElementNode extends RendererNode, FocusNode {
   // Properties
   /** @internal for managing series of insertions and deletions */
   _queueDelete?: number;
-  preserve?: boolean;
   _animationQueue?:
     | Array<{
         props: Partial<INodeAnimateProps<CoreShaderNode>>;
@@ -1272,6 +1282,14 @@ export class ElementNode {
 
   get hidden() {
     return this.alpha === 0;
+  }
+
+  get preserve(): boolean {
+    return this._queueDelete === 0;
+  }
+
+  set preserve(v: boolean) {
+    this._queueDelete = v ? 0 : undefined;
   }
 
   /**
