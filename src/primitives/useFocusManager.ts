@@ -6,14 +6,13 @@ import {
   getOwner,
   runWithOwner,
 } from 'solid-js';
-import { Config } from '../core/index.js';
 import type { ElementNode } from '../core/index.js';
 import {
+  activeElement,
   useFocusManager as useFocusManagerCore,
   type KeyMap,
   type KeyHoldOptions,
 } from '../core/focusManager.js';
-import { activeElement, setActiveElement } from '../activeElement.js';
 
 const [focusPath, setFocusPath] = createSignal<ElementNode[]>([]);
 export { focusPath };
@@ -24,8 +23,6 @@ export const useFocusManager = (
 ) => {
   const owner = getOwner();
   const ownerContext = runWithOwner.bind(this, owner);
-  Config.setActiveElement = (activeElm) =>
-    ownerContext(() => setActiveElement(activeElm));
 
   const { cleanup, focusPath: focusPathCore } = useFocusManagerCore({
     userKeyMap,

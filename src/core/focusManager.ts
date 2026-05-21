@@ -1,3 +1,4 @@
+import { createSignal } from 'solid-js';
 import { Config, isDev } from './config.js';
 import { IRendererNode } from './dom-renderer/domRendererTypes.js';
 export type * from './focusKeyTypes.js';
@@ -8,6 +9,12 @@ import type {
   KeyMap,
 } from './focusKeyTypes.js';
 import { isFunction } from './utils.js';
+
+export const [activeElement, setActiveElementSignal] = createSignal<
+  ElementNode | undefined
+>(undefined);
+
+let _signalWrapper: (cb: () => void) => void = (cb) => cb();
 
 type KeyMapEntries = Record<KeyNameOrKeyCode, string>;
 
@@ -197,17 +204,14 @@ export const printFocusHistory = (count: number): void => {
 
 // ---------------------------------------------------------------------------
 
-let activeElement: ElementNode | undefined;
 export const setActiveElement = (elm: ElementNode) => {
-  if (elm === activeElement) return;
-  const prev = activeElement;
-  updateFocusPath(elm, activeElement);
-  activeElement = elm;
+  const prev = activeElement();
+  if (elm === prev) return;
+  updateFocusPath(elm, prev);
   recordFocusHistory(elm, prev);
   // Reset key attribution so programmatic focus changes show '—' for key fields
   _pendingHistoryKey = { keyPressed: undefined, mappedKey: undefined };
-  // Callback for libraries to use signals / refs
-  Config.setActiveElement(elm);
+  _signalWrapper(() => setActiveElementSignal(elm));
 };
 
 let focusPath: ElementNode[] = [];
@@ -467,10 +471,14 @@ export const useFocusManager = ({
     flattenKeyMap(keyHoldOptions.userKeyHoldMap, keyHoldMapEntries);
   }
 
+  // Route signal updates from programmatic .setFocus() and post-mutation
+  // through the same owner context as key events so effect subscribers have
+  // a parent for cleanup.
+  _signalWrapper = ownerContext;
+
   const delay = keyHoldOptions?.holdThreshold || DEFAULT_KEY_HOLD_THRESHOLD;
   const runKeyEvent = handleKeyEvents.bind(null, delay);
 
-  // Owner context is for frameworks that need effects
   const keyPressHandler = (event: KeyboardEvent) =>
     ownerContext(() => {
       runKeyEvent(event, undefined);

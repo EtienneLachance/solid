@@ -18,7 +18,7 @@ import {
   type Component,
 } from 'solid-js';
 import type { SolidNode } from './types.js';
-import { activeElement, setActiveElement } from './activeElement.js';
+import { activeElement } from './core/focusManager.js';
 
 const solidRenderer = solidCreateRenderer<SolidNode>(nodeOpts);
 
@@ -37,8 +37,6 @@ export function createRenderer(
   const options = rendererOptions || Config.rendererOptions;
 
   renderer = startLightningRenderer(options!, node || 'app');
-  //Prevent this from happening automatically
-  Config.setActiveElement = setActiveElement;
   rootNode.lng = renderer.root!;
   rootNode.rendered = true;
   renderer.on('idle', () => {

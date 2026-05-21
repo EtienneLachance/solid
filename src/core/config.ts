@@ -48,7 +48,6 @@ export interface Config {
   animationsEnabled: boolean;
   fontSettings: Partial<TextProps>;
   rendererOptions?: Partial<RendererMainSettings> | DomRendererMainSettings;
-  setActiveElement: (elm: ElementNode) => void;
   focusStateKey: DollarString;
   lockStyles?: boolean;
   fontWeightAlias?: Record<string, number | string>;
@@ -83,7 +82,6 @@ export const Config: Config = {
     bold: 700,
     black: 900,
   },
-  setActiveElement: () => {},
   focusStateKey: '$focus',
   lockStyles: true,
   rendererOptions: {},
