@@ -12,7 +12,7 @@ To get the full list of changes from the renderer you can check the [changelog](
 4. Update fonts.ts to new format (remove fontWeight information, add to fontFamily)
 5. Double check your fontWeightAlias if needed
 6. Import shaders in index.ts
-7. Check <Text> components to fix possible alignment + centering issues
+7. Check `<text>` elements to fix possible alignment + centering issues
 8. Add **DEV** flag to your vite.config.ts
 
 ### Fonts

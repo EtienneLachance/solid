@@ -3,9 +3,9 @@
 In this snippet, we are utilizing SolidTV to render a simple "Hello World" text on the screen. SolidTV is a declarative JavaScript library for creating user interfaces, renowned for its performance and fine-grained reactivity. SolidTV is a framework for building high-performance, animated TV applications. By combining these technologies, we can create dynamic and visually appealing interfaces optimized for TV environments.
 
 ```jsx
-import { render, Text } from '@solidtv/solid';
+import { render } from '@solidtv/solid';
 
-render(() => <Text>Hello World</Text>);
+render(() => <text>Hello World</text>);
 ```
 
 ## Understanding the Integration of SolidJS & SolidTV
@@ -28,7 +28,7 @@ You can learn more about SolidJS from their [documentation](https://docs.solidjs
 Before calling the Render function, you can set rendererOptions.
 
 ```jsx
-import { render, Config, Text } from '@solidtv/solid';
+import { render, Config } from '@solidtv/solid';
 import { WebGlCoreRenderer, SdfTextRenderer } from '@solidtv/renderer/webgl';
 import { Inspector } from '@solidtv/renderer/inspector';
 
@@ -46,7 +46,7 @@ Config.rendererOptions = {
   deviceLogicalPixelRatio: 1,
   devicePhysicalPixelRatio: 1,
 };
-render(() => <Text>Hello World</Text>);
+render(() => <text>Hello World</text>);
 ```
 
 For the latest renderer options read the official [renderer documentation](https://www.solid-tv.github.io/solid//api/renderer/interfaces/Renderer.RendererMainSettings.html)
@@ -116,7 +116,7 @@ Besides `rendererOptions`, the `Config` object exposes several properties specif
   Default configurations for animations.
   - _Default_: `{ duration: 250, easing: 'ease-in-out' }`
 - **fontSettings**: `Partial<TextProps>`
-  Default settings for all `<Text>` nodes globally.
+  Default settings for all `<text>` nodes globally.
   - _Default_: `{ fontFamily: 'Ubuntu', fontSize: 100 }`
 - **fontWeightAlias**: `Record<string, number | string>`
   Maps font-weight names to specific font files or numeric values (e.g., `{ thin: 100, bold: 700 }`).

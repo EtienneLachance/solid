@@ -144,12 +144,18 @@ export function Dynamic<T extends Record<string, any>>(
 }
 
 // Dont use JSX as it creates circular dependencies and causes trouble with the playground.
+/**
+ * @deprecated Use the lowercase `<view>` intrinsic element instead. The `View` component will be removed in a future release.
+ */
 export const View = (props: NodeProps) => {
   const el = createElement('node');
   spread(el, props, false);
   return el as unknown as JSXElement;
 };
 
+/**
+ * @deprecated Use the lowercase `<text>` intrinsic element instead. The `Text` component will be removed in a future release.
+ */
 export const Text = (props: TextProps) => {
   const el = createElement('text');
   spread(el, props, false);
