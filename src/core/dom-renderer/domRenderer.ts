@@ -1137,6 +1137,7 @@ function updateDOMTextSize(node: DOMText, emitLoaded = true): void {
         w: node.w,
         h: node.h,
       },
+      trimmedHeight: node.h,
     };
     node.emit('loaded', payload);
     node.loaded = true;
