@@ -9,7 +9,10 @@ import type {
   KeyMap,
 } from './focusKeyTypes.js';
 import { isFunction } from './utils.js';
-import { activeElement, setActiveElementSignal } from './activeElement.js';
+import {
+  activeElement,
+  setActiveElement as setActiveElementSignal,
+} from './activeElement.js';
 
 let _signalWrapper: (cb: () => void) => void = (cb) => cb();
 
@@ -201,7 +204,18 @@ export const printFocusHistory = (count: number): void => {
 
 // ---------------------------------------------------------------------------
 
-export const setActiveElement = (elm: ElementNode) => {
+/**
+ * Built-in "apply focus" routine: diffs the focus path, fires
+ * `onFocus`/`onBlur`/`onFocusChanged`, records history, then publishes the
+ * active element through the `Config.setActiveElement` hook.
+ *
+ * This is what `ElementNode.setFocus()` ultimately invokes. It is intentionally
+ * *not* the public `setActiveElement` export — that name is the raw signal
+ * setter (see {@link ./activeElement.ts}). Keeping them separate is what stops
+ * a custom `Config.setActiveElement` (wired to a setter) from recursing back
+ * through the focus-path logic.
+ */
+export const setActiveElementCore = (elm: ElementNode) => {
   const prev = activeElement();
   if (elm === prev) return;
   updateFocusPath(elm, prev);

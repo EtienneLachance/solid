@@ -1,11 +1,8 @@
 export {
   focusPath,
   useFocusManager,
-  setActiveElement,
+  setActiveElementCore,
   type KeyMap,
   type KeyHoldOptions,
 } from '../core/focusManager.js';
-export {
-  activeElement,
-  setActiveElementSignal,
-} from '../core/activeElement.js';
+export { activeElement, setActiveElement } from '../core/activeElement.js';

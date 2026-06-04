@@ -9,7 +9,7 @@ import {
   type ElementNode,
   convertToShader as defaultConvertToShader,
 } from './elementNode.js';
-import { setActiveElementSignal } from './activeElement.js';
+import { setActiveElement as setActiveElementSignal } from './activeElement.js';
 import {
   DomRendererMainSettings,
   IRendererShader,
