@@ -155,7 +155,7 @@ Two of these events signal unrecoverable GPU conditions the application is respo
 
 Fired when the underlying WebGL context is lost — e.g. on low-RAM devices running Chromium 123+ after the app has been backgrounded. The render loop stops and the scene graph is dead, so reload to rebuild it.
 
-```ts
+```jsx
 renderer.on('contextLost', () => {
   // A lost WebGL context leaves a dead scene graph that cannot recover in
   // place. Reload to rebuild it. If the viewer was deep in a route that won't
@@ -175,7 +175,7 @@ Fired when the renderer detects a real `GL_OUT_OF_MEMORY` from the GPU (probed o
 
 The recommended response is to lower the texture-memory `criticalThreshold`, persist it, and reload so the next launch calibrates to the device's real budget. The event payload carries `memUsed` (estimated texture memory in use at the moment of failure) and `criticalThreshold` (the threshold currently in effect). Because the upload failed, the real budget is at or below `memUsed`, which makes it a good basis for the next threshold.
 
-```ts
+```jsx
 // Namespace the storage key per app. TV devices that run from the filesystem
 // (file://) have a null/opaque origin, so a bare key can collide across apps —
 // including the path keeps each app's calibration separate.
