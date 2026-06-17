@@ -33,12 +33,8 @@ import {
   isFunction,
   spliceItem,
 } from './utils.js';
-import {
-  Config,
-  isDev,
-  SHADERS_ENABLED,
-  isDomRendererActive,
-} from './config.js';
+import { isDev, SHADERS_ENABLED } from './env.js';
+import { Config, isDomRendererActive } from './config.js';
 import type {
   RendererMain,
   INode,
@@ -55,7 +51,7 @@ import { assertTruthy } from '@solidtv/renderer/utils';
 import { NodeType, TextNode } from './nodeTypes.js';
 import {
   ForwardFocusHandler,
-  setActiveElement,
+  setActiveElementCore,
   FocusNode,
 } from './focusManager.js';
 import { initClickInspector } from './clickInspector.js';
@@ -130,7 +126,7 @@ function runPostMutation() {
 
   // Phase 3: focus.  setFocus() may have evaluated forwardFocus pre-render
   // (when no children existed yet); deferredFocusElement re-runs setFocus
-  // here once the subtree has rendered, then setActiveElement is applied.
+  // here once the subtree has rendered, then setActiveElementCore is applied.
   if (deferredFocusElement !== null) {
     const el = deferredFocusElement;
     deferredFocusElement = null;
@@ -138,7 +134,7 @@ function runPostMutation() {
   } else if (nextActiveElement !== null) {
     const element = nextActiveElement;
     nextActiveElement = null;
-    setActiveElement(element);
+    setActiveElementCore(element);
   }
 }
 
@@ -271,6 +267,7 @@ const LightningRendererNonAnimatingProps = [
   'fontStretch',
   'fontStyle',
   'group',
+  'ignoreParentAlpha',
   'imageType',
   'letterSpacing',
   'maxHeight',
@@ -278,6 +275,7 @@ const LightningRendererNonAnimatingProps = [
   'maxWidth',
   'offsetY',
   'overflowSuffix',
+  'placeholderColor',
   'preventCleanup',
   'rtt',
   'scrollable',
@@ -332,7 +330,7 @@ export interface ElementNode extends RendererNode, FocusNode {
   _animationQueueSettings?: AnimationSettings;
   _animationRunning?: boolean;
   _animationSettings?: AnimationSettings;
-  _autofocus?: boolean;
+  _autofocus?: any;
   _containsFlexGrow?: boolean | null;
   _hasRenderedChildren?: boolean;
   _effects?: Record<string, any>;
@@ -793,6 +791,8 @@ export class ElementNode {
       shader: undefined,
       clipping: undefined,
       text: undefined,
+      ignoreParentAlpha: undefined,
+      placeholderColor: undefined,
     };
     this.children = [];
 
@@ -1316,7 +1316,7 @@ export class ElementNode {
    * @param val - A value to determine if the element should autofocus.
    *              A truthy value enables autofocus, otherwise disables it.
    */
-  set autofocus(val: boolean | undefined) {
+  set autofocus(val: any) {
     this._autofocus = val;
     // Defer setFocus so children render first (forwardFocus needs them).
     // The post-mutation focus phase calls setFocus on this element.
