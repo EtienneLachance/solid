@@ -519,9 +519,14 @@ function updateNodeStyles(node: DOMNode | DOMText) {
           }
           hasDivBgTint = true;
         }
-      } else if (gradient) {
-        // use gradient as a mask when no tint is applied
-        maskStyle += `mask-image: ${gradient};`;
+      } else {
+        if (gradient) {
+          // use gradient as a mask when no tint is applied
+          maskStyle += `mask-image: ${gradient};`;
+        }
+        if (props.placeholderColor !== 0) {
+          bgStyle += `background-color: ${colorToRgba(props.placeholderColor)};`;
+        }
       }
 
       const imgStyleParts = [
@@ -852,15 +857,28 @@ function updateNodeStyles(node: DOMNode | DOMText) {
 
           node.imgEl.addEventListener('error', () => {
             node.imageLoading = false;
+
+            const failedSrc =
+              node.imgEl?.dataset.pendingSrc || node.lazyImagePendingSrc || '';
+
+            const fallback = node.props.fallbackImage;
+            if (
+              fallback &&
+              node.imgEl &&
+              node.imgEl.dataset.rawSrc !== fallback
+            ) {
+              node.imgEl.dataset.pendingSrc = fallback;
+              node.imgEl.dataset.rawSrc = fallback;
+              node.imgEl.src = fallback;
+              return;
+            }
+
             node.showBackgroundLayer();
             if (node.imgEl) {
               node.imgEl.removeAttribute('src');
               node.imgEl.style.display = 'none';
               node.imgEl.removeAttribute('data-rawSrc');
             }
-
-            const failedSrc =
-              node.imgEl?.dataset.pendingSrc || node.lazyImagePendingSrc || '';
 
             const payload: lng.NodeTextureFailedPayload = {
               type: 'texture',
@@ -972,14 +990,27 @@ function updateNodeStyles(node: DOMNode | DOMText) {
 
         node.imgEl.addEventListener('error', () => {
           node.imageLoading = false;
+
+          const failedSrc =
+            node.imgEl?.dataset.pendingSrc || node.lazyImagePendingSrc || '';
+
+          const fallback = node.props.fallbackImage;
+          if (
+            fallback &&
+            node.imgEl &&
+            node.imgEl.dataset.rawSrc !== fallback
+          ) {
+            node.imgEl.dataset.pendingSrc = fallback;
+            node.imgEl.dataset.rawSrc = fallback;
+            node.imgEl.src = fallback;
+            return;
+          }
+
           if (node.imgEl) {
             node.imgEl.removeAttribute('src');
             node.imgEl.style.display = 'none';
             node.imgEl.removeAttribute('data-rawSrc');
           }
-
-          const failedSrc =
-            node.imgEl?.dataset.pendingSrc || node.lazyImagePendingSrc || '';
 
           const payload: lng.NodeTextureFailedPayload = {
             type: 'texture',
@@ -1137,7 +1168,6 @@ function updateDOMTextSize(node: DOMText, emitLoaded = true): void {
         w: node.w,
         h: node.h,
       },
-      trimmedHeight: node.h,
     };
     node.emit('loaded', payload);
     node.loaded = true;
@@ -1244,6 +1274,7 @@ function resolveNodeDefaults(
     w: props.w ?? 0,
     h: props.h ?? 0,
     alpha: props.alpha ?? 1,
+    ignoreParentAlpha: props.ignoreParentAlpha ?? false,
     autosize: props.autosize ?? false,
     boundsMargin: props.boundsMargin ?? null,
     clipping: props.clipping ?? false,
@@ -1279,6 +1310,8 @@ function resolveNodeDefaults(
     pivotY: props.pivotY ?? props.pivot ?? 0.5,
     rotation: props.rotation ?? 0,
     rtt: props.rtt ?? false,
+    placeholderColor: props.placeholderColor ?? 0,
+    fallbackImage: props.fallbackImage ?? null,
     data: {},
     imageType: props.imageType,
   };
@@ -1805,6 +1838,31 @@ export class DOMNode extends EventEmitter implements IRendererNode {
     this.props.boundsMargin = value;
     this.boundsDirty = true;
     this.markChildrenBoundsDirty();
+  }
+
+  get ignoreParentAlpha(): boolean {
+    return this.props.ignoreParentAlpha;
+  }
+  set ignoreParentAlpha(v: boolean) {
+    this.props.ignoreParentAlpha = v;
+    updateNodeStyles(this);
+  }
+
+  get placeholderColor(): number {
+    return this.props.placeholderColor;
+  }
+  set placeholderColor(v: number) {
+    this.props.placeholderColor = v;
+    updateNodeStyles(this);
+  }
+
+  get fallbackImage(): string | null {
+    return this.props.fallbackImage ?? null;
+  }
+
+  set fallbackImage(v: string | null) {
+    if (this.props.fallbackImage === v) return;
+    this.props.fallbackImage = v;
   }
 
   get absX(): number {
